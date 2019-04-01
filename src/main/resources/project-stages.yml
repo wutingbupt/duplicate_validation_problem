@@ -1,0 +1,52 @@
+service:
+  sw:
+    version: ${version.number}
+    name: ${project.artifactId}
+    pom:
+      parent-version: ${project.parent.version}
+    container:
+      image: ${docker.use.repository.base}:${docker.use.tag.base}
+    git:
+      branch: ${git.branch}
+      build:
+        host: ${git.build.host}
+        time: ${git.build.time}
+        user:
+          email: ${git.build.user.email}
+          name: ${git.build.user.name}
+      commit:
+        id: ${git.commit.id}
+        time:  ${git.commit.time}
+        user:
+          email: ${git.commit.user.email}
+          name: ${git.commit.user.name}
+    tags: ${git.tags}
+swarm:
+  logging:
+      pattern-formatters:
+        LOGSTASH_OUTPUT_PATTERN:
+          pattern: "%s%e%n"
+      console-handlers:
+        CONSOLE:
+          named-formatter: LOGSTASH_OUTPUT_PATTERN
+  microprofile:
+    jwt:
+      token:
+        jwks-uri: ${jwks.uri}
+        issued-by: ${issued.by}
+  security:
+    security-domains:
+      jwt-ucm:
+        jaspi-authentication:
+          login-module-stacks:
+            roles-lm-stack:
+              login-modules:
+                - login-module: rm
+                  code: org.wildfly.swarm.microprofile.jwtauth.deployment.auth.jaas.JWTLoginModule
+                  flag: required
+          auth-modules:
+            http:
+              code: org.wildfly.extension.undertow.security.jaspi.modules.HTTPSchemeServerAuthModule
+              module: org.wildfly.extension.undertow
+              flag: required
+              login-module-stack-ref: roles-lm-stack

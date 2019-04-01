@@ -1,0 +1,62 @@
+service:
+  sw:
+    version: test
+    name: ucm-tasks-global
+    pom:
+      parent-version: 2
+    container:
+      image: image
+    git:
+      branch: branch
+      build:
+        host: host
+        time: 1234
+        user:
+          email: email
+          name: name
+      commit:
+        id: id
+        message:
+          short: message
+        time:  1234
+        user:
+          email: email
+          name: name
+      tags: tags
+thorntail:
+  arquillian:
+    daemon:
+      port: 10080
+  logging:
+    pattern-formatters:
+      LOGSTASH_OUTPUT_PATTERN:
+        pattern: "%s%e%n"
+    console-handlers:
+      CONSOLE:
+        named-formatter: LOGSTASH_OUTPUT_PATTERN
+    loggers:
+      org.jboss.weld:
+        level: ERROR
+  microprofile:
+    jwt:
+      token:
+        jwks-uri: http://localhost:8097/auth/realms/grundfos/protocol/openid-connect/certs
+        issued-by: http://localhost:8097/auth/realms/grundfos
+  security:
+    security-domains:
+      jwt-ucm:
+        jaspi-authentication:
+          login-module-stacks:
+            roles-lm-stack:
+              login-modules:
+                # This stack performs the token verification and group to role mapping
+                - login-module: rm
+                  code: org.wildfly.swarm.microprofile.jwtauth.deployment.auth.jaas.JWTLoginModule
+                  flag: required
+          auth-modules:
+          # This module integrates the MP-JWT custom authentication mechanism into the web container
+            http:
+              code: org.wildfly.extension.undertow.security.jaspi.modules.HTTPSchemeServerAuthModule
+              module: org.wildfly.extension.undertow
+              flag: required
+              login-module-stack-ref: roles-lm-stack
